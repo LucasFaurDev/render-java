@@ -1,0 +1,10 @@
+com\phonebook\phonebook_server\configure\CorsConfig.class
+com\phonebook\phonebook_server\filters\LoggingFilter.class
+com\phonebook\phonebook_server\exceptions\PersonNotFoundException.class
+com\phonebook\phonebook_server\controllers\PersonsController.class
+com\phonebook\phonebook_server\exceptions\ContentMissingException.class
+com\phonebook\phonebook_server\exceptions\NameUniqueException.class
+com\phonebook\phonebook_server\configure\CorsConfig$1.class
+com\phonebook\phonebook_server\exceptions\GlobalExceptionHandler.class
+com\phonebook\phonebook_server\models\Person.class
+com\phonebook\phonebook_server\PhonebookServerApplication.class
