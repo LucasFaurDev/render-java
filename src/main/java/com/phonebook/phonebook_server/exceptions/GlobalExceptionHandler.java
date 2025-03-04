@@ -2,6 +2,7 @@ package com.phonebook.phonebook_server.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -30,5 +31,14 @@ public class GlobalExceptionHandler {
         Map<String, String> errorResponse = new HashMap<>();
         errorResponse.put("Error", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidations(MethodArgumentNotValidException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errorResponse.put(error.getField(), error.getDefaultMessage())
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 }

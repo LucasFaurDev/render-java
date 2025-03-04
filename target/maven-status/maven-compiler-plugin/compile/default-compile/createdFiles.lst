@@ -1,4 +1,6 @@
+com\phonebook\phonebook_server\MongoConsole.class
 com\phonebook\phonebook_server\configure\CorsConfig.class
+com\phonebook\phonebook_server\repository\PersonRepository.class
 com\phonebook\phonebook_server\filters\LoggingFilter.class
 com\phonebook\phonebook_server\exceptions\PersonNotFoundException.class
 com\phonebook\phonebook_server\controllers\PersonsController.class

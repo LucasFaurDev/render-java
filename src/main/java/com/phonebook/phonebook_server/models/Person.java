@@ -1,24 +1,37 @@
 package com.phonebook.phonebook_server.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document("persons")
 public class Person {
+    @Id
+    @JsonProperty("id")
     private String id;
+
+    @Size(min = 3, message = "The name is shorter than the minimum allowed length 3")
+    @NotBlank(message = "The name is required")
     private String name;
+
+    @NotBlank(message = "The number is required")
+    @Size(min = 8, message = "The number have length of 8 or more")
+    @Pattern(regexp = "^\\d{2,3}-\\d+$",
+            message = "The phone number must be in the format XX-XXXXXXXX or XXX-XXXXXXXX")
     private String number;
 
     public Person () {}
 
-    public Person(String id, String name, String number) {
-        this.id = id;
+    public Person(String name, String number) {
         this.name = name;
         this.number = number;
     }
 
     public String getId () {
         return this.id;
-    }
-
-    public void setId (String id) {
-        this.id = id;
     }
 
     public String getName () {

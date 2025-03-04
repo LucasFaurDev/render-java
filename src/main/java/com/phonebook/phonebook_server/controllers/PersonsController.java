@@ -1,9 +1,13 @@
 package com.phonebook.phonebook_server.controllers;
 
-import com.phonebook.phonebook_server.exceptions.ContentMissingException;
 import com.phonebook.phonebook_server.exceptions.NameUniqueException;
 import com.phonebook.phonebook_server.exceptions.PersonNotFoundException;
+import com.phonebook.phonebook_server.exceptions.ContentMissingException;
 import com.phonebook.phonebook_server.models.Person;
+import com.phonebook.phonebook_server.repository.PersonRepository;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,40 +17,38 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/persons")
 public class PersonsController {
-    public List<Person> persons = new ArrayList<>(Arrays.asList(
-            new Person("1", "Arto Hellas", "040-123456"),
-            new Person("2", "Ada Lovelace", "39-44-5323523"),
-            new Person("3", "Dan Abramov", "12-43-234345"),
-            new Person("4", "Mary Poppendieck", "39-23-6423122")
-    ));
+
+    @Autowired
+    private PersonRepository personRepository;
 
     @GetMapping("")
-    public List<Person> getALl() {
-        return persons;
+    public ResponseEntity<List<Person>> getALl() {
+        List<Person> persons = personRepository.findAll();
+        return ResponseEntity.ok(persons);
     }
 
     @GetMapping("/info")
     public String getInfo() {
         Date date = new Date();
-        return "Phonebook has info for " + persons.size() + " people.\n" + date.toString();
+        return "Phonebook has info for " + personRepository.count() + " people.\n" + date.toString();
     }
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<Person> getOne(@PathVariable String id) {
-        Optional<Person> person = persons.stream().filter(p -> p.getId().equals(id)).findFirst();
+    public ResponseEntity<Person> getOnePerson(@PathVariable String id) {
+        Optional<Person> person = personRepository.findById(id);
         if (person.isPresent()) {
-            return ResponseEntity.ok(person.get());
+            return ResponseEntity.status(HttpStatus.OK).body(person.get());
         } else {
             throw new PersonNotFoundException(id);
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        Optional<Person> personToDelete = persons.stream().filter(p -> p.getId().equals(id)).findFirst();
-        if (personToDelete.isPresent()) {
-            persons.removeIf(p -> p.getId().equals(id));
+    public ResponseEntity<Void> deletePerson(@PathVariable String id) {
+        boolean personToDelete = personRepository.existsById(id);
+        if (personToDelete) {
+            personRepository.deleteById(id);
             return  ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } else {
             throw new PersonNotFoundException(id);
@@ -54,7 +56,7 @@ public class PersonsController {
     }
 
     @PostMapping("")
-    public ResponseEntity<Person> addPerson(@RequestBody Person personRequest) {
+    public ResponseEntity<Person> addPerson(@Valid @RequestBody Person personRequest) {
         if (personRequest == null || personRequest.getName() == null
                 || personRequest.getName().isEmpty()
                 || personRequest.getNumber() == null
@@ -63,19 +65,31 @@ public class PersonsController {
             throw new ContentMissingException();
         }
 
-        Optional<Person> exists = persons.stream()
-                .filter(p -> p.getName().equals(personRequest.getName())).findFirst();
+        Optional<Person> exists = personRepository.findByName(personRequest.getName());
+
         if (exists.isPresent()) {
             throw new NameUniqueException();
         }
 
         Person newPerson = new Person(
-                UUID.randomUUID().toString(),
                 personRequest.getName(),
                 personRequest.getNumber()
         );
-        persons.add(newPerson);
+        personRepository.save(newPerson);
         return ResponseEntity.status(HttpStatus.CREATED).body(newPerson);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Person> updatePerson(@PathVariable String id, @Valid @RequestBody Person requestBody) {
+        Optional<Person> personToUpdate = personRepository.findById(id);
+
+        if (personToUpdate.isPresent()) {
+            Person updatedPerson = personToUpdate.get();
+            updatedPerson.setNumber(requestBody.getNumber());
+            personRepository.save(updatedPerson);
+            return ResponseEntity.status(HttpStatus.OK).body(personToUpdate.get());
+        } else {
+            throw new PersonNotFoundException(id);
+        }
+    }
 }
